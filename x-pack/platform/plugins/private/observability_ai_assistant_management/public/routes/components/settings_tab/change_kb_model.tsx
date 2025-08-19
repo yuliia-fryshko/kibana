@@ -232,6 +232,9 @@ export function ChangeKbModel({
             color="primary"
             data-test-subj="observabilityAiAssistantKnowledgeBaseUpdateModelButton"
             onClick={handleInstall}
+            isLoading={isUpdatingModel}
+            iconType="refresh"
+            iconSide="left"
             isDisabled={
               !selectedInferenceId ||
               isKnowledgeBaseInLoadingState ||
@@ -263,97 +266,6 @@ export function ChangeKbModel({
   ]);
 
   return (
-    <EuiDescribedFormGroup
-      fullWidth
-      title={
-        <h3>
-          {i18n.translate(
-            'xpack.observabilityAiAssistantManagement.knowledgeBase.chooseModelLabel',
-            {
-              defaultMessage: 'Set text embeddings model',
-            }
-          )}
-        </h3>
-      }
-      description={
-        <>
-          <EuiText size="s" color="subdued">
-            {i18n.translate(
-              'xpack.observabilityAiAssistantManagement.settingsPage.knowledgeBase.chooseModelDescription',
-              {
-                defaultMessage: "Choose the default language model for the Assistant's responses.",
-              }
-            )}{' '}
-            <EuiLink
-              href="https://www.elastic.co/docs/explore-analyze/machine-learning/nlp/ml-nlp-built-in-models"
-              target="_blank"
-            >
-              {i18n.translate(
-                'xpack.observabilityAiAssistantManagement.knowledgeBase.subtitleLearnMore',
-                {
-                  defaultMessage: 'Learn more',
-                }
-              )}
-            </EuiLink>
-          </EuiText>
-          {knowledgeBase.status?.value?.inferenceModelState && (
-            <EuiFlexGroup gutterSize="s" alignItems="center" css={{ marginTop: 8 }}>
-              <EuiFlexItem grow={false}>
-                <EuiText size="s">
-                  {i18n.translate(
-                    'xpack.observabilityAiAssistantManagement.knowledgeBase.kbStateLabel',
-                    {
-                      defaultMessage: 'Knowledge Base Status:',
-                    }
-                  )}
-                </EuiText>
-              </EuiFlexItem>
-              <EuiFlexItem grow={false}>
-                <EuiFlexGroup gutterSize="s" alignItems="center">
-                  <EuiFlexItem grow={false}>
-                    <EuiBadge
-                      data-test-subj="observabilityAiAssistantKnowledgeBaseStatus"
-                      color={
-                        knowledgeBase.status.value.inferenceModelState === InferenceModelState.READY
-                          ? isKnowledgeBaseInLoadingState
-                            ? 'warning'
-                            : 'success'
-                          : 'default'
-                      }
-                    >
-                      {knowledgeBase.status.value.inferenceModelState === InferenceModelState.READY
-                        ? isKnowledgeBaseInLoadingState
-                          ? i18n.translate(
-                              'xpack.observabilityAiAssistantManagement.knowledgeBase.stateUpdatingModel',
-                              {
-                                defaultMessage: 'Updating model',
-                              }
-                            )
-                          : i18n.translate(
-                              'xpack.observabilityAiAssistantManagement.knowledgeBase.stateInstalled',
-                              {
-                                defaultMessage: 'Installed',
-                              }
-                            )
-                        : knowledgeBase.status.value.inferenceModelState}
-                    </EuiBadge>
-                  </EuiFlexItem>
-                  {isKnowledgeBaseInLoadingState && (
-                    <EuiFlexItem grow={false}>
-                      <EuiLoadingSpinner
-                        size="s"
-                        data-test-subj="observabilityAiAssistantKnowledgeBaseLoadingSpinner"
-                      />
-                    </EuiFlexItem>
-                  )}
-                </EuiFlexGroup>
-              </EuiFlexItem>
-            </EuiFlexGroup>
-          )}
-        </>
-      }
-    >
       <EuiFormRow fullWidth>{content}</EuiFormRow>
-    </EuiDescribedFormGroup>
   );
 }
