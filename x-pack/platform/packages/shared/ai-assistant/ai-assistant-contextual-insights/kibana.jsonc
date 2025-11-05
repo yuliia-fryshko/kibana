@@ -1,0 +1,7 @@
+{
+  "type": "shared-browser",
+  "id": "@kbn/ai-assistant-contextual-insights",
+  "owner": "@elastic/appex-sharedux",
+  "group": "platform",
+  "visibility": "shared"
+}

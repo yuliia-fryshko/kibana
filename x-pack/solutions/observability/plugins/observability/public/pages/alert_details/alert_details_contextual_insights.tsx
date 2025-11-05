@@ -5,13 +5,16 @@
  * 2.0.
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { i18n } from '@kbn/i18n';
+import { ContextualInsights } from '@kbn/ai-assistant-contextual-insights';
+import { EuiText } from '@elastic/eui';
 import { ALERT_RULE_PARAMETERS } from '@kbn/rule-data-utils';
 import dedent from 'dedent';
 import { type AlertDetailsContextualInsight } from '../../../server/services';
 import { useKibana } from '../../utils/kibana_react';
 import type { AlertData } from '../../hooks/use_fetch_alert_detail';
+// import { error } from '@kbn/expressions-plugin/common/expression_types/specs/error';
 
 export function AlertDetailContextualInsights({ alert }: { alert: AlertData | null }) {
   const {
@@ -86,17 +89,72 @@ export function AlertDetailContextualInsights({ alert }: { alert: AlertData | nu
     }
   }, [alert, http, observabilityAIAssistant]);
 
+  const [summary, setSummary] = useState<React.ReactNode | undefined>(undefined);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      if (!observabilityAIAssistant || !alert) return;
+      try {
+        setIsLoading(true);
+        const messages = await getAlertContextMessages();
+        if (!mounted) return;
+        // messages may be an array of strings or objects; stringify safely
+        const text = Array.isArray(messages)
+          ? messages.map((m: any) => (typeof m === 'string' ? m : JSON.stringify(m))).join('\n\n')
+          : messages
+          ? String(messages)
+          : undefined;
+        setSummary(text);
+      } catch (e) {
+        // keep summary undefined on error
+      } finally {
+        if (mounted) setIsLoading(false);
+      }
+    };
+
+    load();
+
+    return () => {
+      mounted = false;
+    };
+  }, [getAlertContextMessages, observabilityAIAssistant, alert]);
+
   if (!ObservabilityAIAssistantContextualInsight) {
     return null;
   }
 
   return (
-    <ObservabilityAIAssistantContextualInsight
-      title={i18n.translate(
-        'xpack.observability.alertDetailContextualInsights.InsightButtonLabel',
-        { defaultMessage: 'Help me understand this alert' }
-      )}
-      messages={getAlertContextMessages}
+    <ContextualInsights
+      id="alertDetailsContextualInsights"
+      title={
+        i18n.translate('xpack.observability.alertDetailContextualInsights.title', {
+          defaultMessage: 'Alert summary (AI generated)',
+        })
+      }
+      subtitle={
+        i18n.translate('xpack.observability.alertDetailContextualInsights.subtitle', {
+          defaultMessage: 'Contextual analysis from AI Assistant',
+        })
+      }
+      summary={summary}
+      isLoading={isLoading}
+      footerLeftContent={
+        <EuiText size="xs">
+          {i18n.translate('xpack.observability.alertDetailContextualInsights.feedback', {
+            defaultMessage: 'Feedback actions here',
+          })}
+        </EuiText>
+      }
     />
+    // <ContextualInsights
+    //   id="alertDetails"
+    //   title={i18n.translate(
+    //     'xpack.observability.alertDetailContextualInsights.title',
+    //     { defaultMessage: 'Alert Details' }
+    //   )}
+    //   messages={getAlertContextMessages}
+    // />
   );
 }
