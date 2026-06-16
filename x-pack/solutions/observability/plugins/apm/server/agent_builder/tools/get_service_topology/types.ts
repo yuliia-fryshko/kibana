@@ -5,34 +5,20 @@
  * 2.0.
  */
 
-export type TopologyDirection = 'downstream' | 'upstream' | 'both';
+import type { z } from '@kbn/zod/v4';
+import type {
+  connectionMetricsSchema,
+  serviceTopologyConnectionSchema,
+  serviceTopologyParamsSchema,
+  serviceTopologyResponseSchema,
+} from './schema';
 
-export interface ServiceTopologyNode {
-  'service.name': string;
-  'agent.name'?: string;
-}
+export type ServiceTopologyParams = z.infer<typeof serviceTopologyParamsSchema>;
+export type TopologyDirection = ServiceTopologyParams['direction'];
 
-export interface ExternalNode {
-  'span.destination.service.resource': string;
-  'span.type': string;
-  'span.subtype': string;
-}
-
-export interface ConnectionMetrics {
-  errorRate?: number;
-  latencyMs?: number;
-  throughputPerMin?: number;
-}
-
-export interface ServiceTopologyConnection {
-  source: ServiceTopologyNode | ExternalNode;
-  target: ServiceTopologyNode | ExternalNode;
-  metrics: ConnectionMetrics | undefined;
-}
-
-export interface ServiceTopologyResponse {
-  connections: ServiceTopologyConnection[];
-}
+export type ConnectionMetrics = z.infer<typeof connectionMetricsSchema>;
+export type ServiceTopologyConnection = z.infer<typeof serviceTopologyConnectionSchema>;
+export type ServiceTopologyResponse = z.infer<typeof serviceTopologyResponseSchema>;
 
 export interface ConnectionWithKey extends ServiceTopologyConnection {
   _key: string;
