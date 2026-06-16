@@ -53,6 +53,7 @@ import type {
 } from './types';
 import { registerDataProviders } from './agent_builder/data_provider/register_data_providers';
 import { registerServiceMapAgentBuilder } from './agent_builder/register_service_map';
+import { registerServiceTopologyRoute } from './agent_builder/routes/register_service_topology_route';
 import { registerServiceMapEmbeddableTransforms } from './lib/embeddables/register_service_map_embeddable_transforms';
 
 export class APMPlugin
@@ -256,6 +257,13 @@ export class APMPlugin
       plugins,
       config: currentConfig,
       logger: this.logger!.get('observabilityAgentBuilder'),
+    });
+
+    registerServiceTopologyRoute({
+      core,
+      plugins,
+      config: currentConfig,
+      logger: this.logger!.get('agentBuilder', 'serviceTopology'),
     });
 
     registerServiceMapEmbeddableTransforms(plugins.embeddable);
