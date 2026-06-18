@@ -24,6 +24,7 @@ import { buildApmToolResources } from '../utils/build_apm_tool_resources';
 import type { APMPluginSetupDependencies, APMPluginStartDependencies } from '../../types';
 import { getTransaction } from '../../routes/transactions/get_transaction';
 import { getTransactionByName } from '../../routes/transactions/get_transaction_by_name';
+import { getServiceTopology } from '../tools/get_service_topology/service';
 
 export function registerDataProviders({
   core,
@@ -304,6 +305,29 @@ export function registerDataProviders({
         transactionId: resolvedTransactionId,
         traceId: resolvedTraceId,
       };
+    }
+  );
+
+  observabilityAgentBuilder.registerDataProvider(
+    'apmServiceTopology',
+    async ({ request, serviceName, direction, depth, start, end }) => {
+      const { apmEventClient, randomSamplerSeed } = await buildApmToolResources({
+        core,
+        plugins,
+        request,
+      });
+
+      return getServiceTopology({
+        apmEventClient,
+        randomSamplerSeed,
+        config,
+        logger,
+        serviceName,
+        direction,
+        depth,
+        start,
+        end,
+      });
     }
   );
 }

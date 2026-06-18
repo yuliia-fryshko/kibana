@@ -15,7 +15,6 @@ import type {
 } from '../../../types';
 import { getApmIndices } from '../../../utils/get_apm_indices';
 import { parseDatemath } from '../../../utils/time';
-import { getServiceTopology } from '../../../tools/get_service_topology/get_service_topology';
 import { getTraceDocuments } from '../../../tools/get_traces/get_trace_documents';
 
 export interface FetchApmErrorContextParams {
@@ -85,12 +84,8 @@ export async function fetchApmErrorContext({
       start,
       end,
       handler: () =>
-        getServiceTopology({
-          core,
-          plugins,
-          dataRegistry,
+        dataRegistry.getData('apmServiceTopology', {
           request,
-          logger,
           serviceName,
           direction: 'downstream',
           start,

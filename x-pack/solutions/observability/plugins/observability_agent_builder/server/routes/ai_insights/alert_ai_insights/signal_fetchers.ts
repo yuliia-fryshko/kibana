@@ -17,7 +17,6 @@ import { getToolHandler as getLogGroups } from '../../../tools/get_log_groups/ha
 import { getToolHandler as getRuntimeMetrics } from '../../../tools/get_runtime_metrics/handler';
 import { getToolHandler as getHosts } from '../../../tools/get_hosts/handler';
 import { getToolHandler as getServices } from '../../../tools/get_services/handler';
-import { getServiceTopology } from '../../../tools/get_service_topology/get_service_topology';
 
 export interface SignalFetcherDeps {
   core: ObservabilityAgentBuilderCoreSetup;
@@ -114,14 +113,10 @@ export const SIGNAL_FETCHERS: SignalFetcher[] = [
     description:
       'Shows downstream dependencies (services and external dependencies), including metrics for latency/througput/error rate. Useful for understanding if the service is a victim of cascading failures.',
     startOffsetMinutes: 24 * 60,
-    async fetch({ core, plugins, dataRegistry, request, logger, serviceName }, start, end) {
+    async fetch({ dataRegistry, request, serviceName }, start, end) {
       if (!serviceName) return null;
-      const data = await getServiceTopology({
-        core,
-        plugins,
-        dataRegistry,
+      const data = await dataRegistry.getData('apmServiceTopology', {
         request,
-        logger,
         serviceName,
         direction: 'downstream',
         depth: 1,

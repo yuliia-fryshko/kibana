@@ -8,7 +8,7 @@
 import type { KibanaRequest } from '@kbn/core/server';
 import type { ChangePointType } from '@kbn/es-types/src';
 import type { GetSLOParams, GetSLOResponse } from '@kbn/slo-schema';
-import type { Transaction } from '@kbn/apm-types';
+import type { Transaction, ServiceTopologyResponse, TopologyDirection } from '@kbn/apm-types';
 import type { QueryDslQueryContainer } from '@elastic/elasticsearch/lib/api/types';
 import type { ML_ANOMALY_SEVERITY } from '@kbn/ml-anomaly-utils/anomaly_severity';
 
@@ -290,4 +290,13 @@ export interface ObservabilityAgentBuilderDataRegistryTypes {
     request: KibanaRequest;
     configId: string;
   }) => Promise<SyntheticsMonitorDetailsResponse>;
+
+  apmServiceTopology: (params: {
+    request: KibanaRequest;
+    serviceName: string;
+    direction?: TopologyDirection;
+    depth?: number;
+    start: string;
+    end: string;
+  }) => Promise<ServiceTopologyResponse>;
 }
