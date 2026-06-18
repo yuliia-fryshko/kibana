@@ -8,6 +8,7 @@
 import type { Logger } from '@kbn/core/server';
 import { platformCoreTools, platformStreamsSigEventsTools } from '@kbn/agent-builder-common';
 import type { StaticToolRegistration } from '@kbn/agent-builder-server';
+import { OBSERVABILITY_GET_SERVICE_TOPOLOGY_TOOL_ID } from '@kbn/apm-types';
 import type {
   ObservabilityAgentBuilderCoreSetup,
   ObservabilityAgentBuilderPluginSetupDependencies,
@@ -49,10 +50,6 @@ import {
   createGetTraceChangePointsTool,
 } from './get_trace_change_points/tool';
 import { OBSERVABILITY_GET_INDEX_INFO_TOOL_ID, createGetIndexInfoTool } from './get_index_info';
-import {
-  OBSERVABILITY_GET_SERVICE_TOPOLOGY_TOOL_ID,
-  createGetServiceTopologyTool,
-} from './get_service_topology/tool';
 import { OBSERVABILITY_GET_TRACES_TOOL_ID, createGetTracesTool } from './get_traces/tool';
 import { OBSERVABILITY_GET_LOGS_TOOL_ID, createGetLogsTool } from './get_logs/tool';
 import {
@@ -112,7 +109,6 @@ export async function registerTools({
     createGetMetricChangePointsTool({ core, plugins, logger }),
     createGetTraceChangePointsTool({ core, plugins, logger }),
     createGetIndexInfoTool({ core, plugins, logger }),
-    createGetServiceTopologyTool({ core, plugins, dataRegistry, logger }),
     createGetLogsTool({ core, logger }),
     createGetApmCorrelationsTool({ core, plugins, logger }),
   ];

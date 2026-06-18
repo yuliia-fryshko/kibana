@@ -5,60 +5,37 @@
  * 2.0.
  */
 
-import { z } from '@kbn/zod/v4';
-import type { Logger } from '@kbn/core/server';
+import type { CoreSetup, Logger } from '@kbn/core/server';
 import type { BuiltinToolDefinition, StaticToolRegistration } from '@kbn/agent-builder-server';
 import { ToolType } from '@kbn/agent-builder-common';
 import { ToolResultType } from '@kbn/agent-builder-common/tools/tool_result';
-import type {
-  ObservabilityAgentBuilderCoreSetup,
-  ObservabilityAgentBuilderPluginSetupDependencies,
-} from '../../types';
-import type { ObservabilityAgentBuilderDataRegistry } from '../../data_registry/data_registry';
-import { timeRangeSchemaOptional } from '../../utils/tool_schemas';
-import { getAgentBuilderResourceAvailability } from '../../utils/get_agent_builder_resource_availability';
-import { getToolHandler } from './handler';
+import { OBSERVABILITY_GET_SERVICE_TOPOLOGY_TOOL_ID } from '@kbn/apm-types';
+import type { APMConfig } from '../../..';
+import type { APMPluginSetupDependencies, APMPluginStartDependencies } from '../../../types';
+import { buildApmToolResources } from '../../utils/build_apm_tool_resources';
+import { getApmAgentBuilderResourceAvailability } from '../../utils/get_resource_availability';
+import { getServiceTopology } from './service';
+import { serviceTopologyParamsSchema } from './schema';
 
-export const OBSERVABILITY_GET_SERVICE_TOPOLOGY_TOOL_ID = 'observability.get_service_topology';
-
-const DEFAULT_TIME_RANGE = { start: 'now-1h', end: 'now' };
-
-const getServiceTopologyToolSchema = z.object({
-  ...timeRangeSchemaOptional(DEFAULT_TIME_RANGE),
-  serviceName: z.string().min(1).describe('The name of the service to get the topology for'),
-  direction: z
-    .enum(['downstream', 'upstream', 'both'])
-    .default('downstream')
-    .describe(
-      'Direction of dependencies to retrieve. ' +
-        '"downstream" shows what this service calls (dependencies). ' +
-        '"upstream" shows what calls this service (callers). ' +
-        '"both" shows both directions. Defaults to "downstream".'
-    ),
-  depth: z
-    .number()
-    .int()
-    .min(1)
-    .optional()
-    .describe(
-      'Maximum number of hops to traverse. ' +
-        'depth=1 returns only immediate (single-hop) dependencies. ' +
-        'Omit for unlimited traversal (full multi-hop topology).'
-    ),
-});
-
+/**
+ * Inline (Agent Builder) adapter for the canonical service topology service.
+ *
+ * Thin wrapper: builds APM resources in-process and delegates to
+ * `getServiceTopology` — the same service the HTTP route calls. No HTTP overhead,
+ * re-authentication, or scope translation.
+ */
 export function createGetServiceTopologyTool({
   core,
   plugins,
-  dataRegistry,
+  config,
   logger,
 }: {
-  core: ObservabilityAgentBuilderCoreSetup;
-  plugins: ObservabilityAgentBuilderPluginSetupDependencies;
-  dataRegistry: ObservabilityAgentBuilderDataRegistry;
+  core: CoreSetup<APMPluginStartDependencies>;
+  plugins: APMPluginSetupDependencies;
+  config: APMConfig;
   logger: Logger;
-}): StaticToolRegistration<typeof getServiceTopologyToolSchema> {
-  const toolDefinition: BuiltinToolDefinition<typeof getServiceTopologyToolSchema> = {
+}): StaticToolRegistration<typeof serviceTopologyParamsSchema> {
+  const toolDefinition: BuiltinToolDefinition<typeof serviceTopologyParamsSchema> = {
     id: OBSERVABILITY_GET_SERVICE_TOPOLOGY_TOOL_ID,
     type: ToolType.builtin,
     description: `Retrieves the service topology (dependency graph) for a service, with RED metrics (latency, throughput, error rate) per connection.
@@ -77,12 +54,12 @@ When NOT to use:
 After reviewing topology results, consider:
 - Use \`observability.get_trace_metrics\` with timeseries to check latency/error trends over time
 - Use \`observability.get_traces\` to find error patterns in failing dependencies`,
-    schema: getServiceTopologyToolSchema,
+    schema: serviceTopologyParamsSchema,
     tags: ['observability', 'apm', 'service-map', 'topology'],
     availability: {
       cacheMode: 'space',
       handler: async ({ request }) => {
-        return getAgentBuilderResourceAvailability({ core, request, logger });
+        return getApmAgentBuilderResourceAvailability({ core, request, logger });
       },
     },
     handler: async (toolParams, context) => {
@@ -90,11 +67,16 @@ After reviewing topology results, consider:
       const { request } = context;
 
       try {
-        const topology = await getToolHandler({
+        const { apmEventClient, randomSamplerSeed } = await buildApmToolResources({
           core,
           plugins,
           request,
-          dataRegistry,
+        });
+
+        const topology = await getServiceTopology({
+          apmEventClient,
+          randomSamplerSeed,
+          config,
           logger,
           serviceName,
           direction,

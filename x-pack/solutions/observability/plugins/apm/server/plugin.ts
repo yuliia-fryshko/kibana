@@ -54,6 +54,7 @@ import type {
 import { registerDataProviders } from './agent_builder/data_provider/register_data_providers';
 import { registerServiceMapAgentBuilder } from './agent_builder/register_service_map';
 import { registerServiceTopologyRoute } from './agent_builder/routes/register_service_topology_route';
+import { registerApmAgentBuilderTools } from './agent_builder/register_tools';
 import { registerServiceMapEmbeddableTransforms } from './lib/embeddables/register_service_map_embeddable_transforms';
 
 export class APMPlugin
@@ -270,6 +271,12 @@ export class APMPlugin
 
     if (plugins.agentBuilder) {
       registerServiceMapAgentBuilder({ agentBuilder: plugins.agentBuilder });
+      registerApmAgentBuilderTools({
+        core,
+        plugins,
+        config: currentConfig,
+        logger: this.logger!.get('agentBuilder', 'serviceTopology'),
+      });
     }
 
     registerDeprecations({
