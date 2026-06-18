@@ -9,7 +9,6 @@ import type { KibanaRequest } from '@kbn/core/server';
 import type { ChangePointType } from '@kbn/es-types/src';
 import type { GetSLOParams, GetSLOResponse } from '@kbn/slo-schema';
 import type { Transaction, ServiceTopologyResponse, TopologyDirection } from '@kbn/apm-types';
-import type { QueryDslQueryContainer } from '@elastic/elasticsearch/lib/api/types';
 import type { ML_ANOMALY_SEVERITY } from '@kbn/ml-anomaly-utils/anomaly_severity';
 
 interface TimeseriesChangePoint {
@@ -125,49 +124,6 @@ interface InfraHostsResponse {
   nodes: InfraEntityMetricsItem[];
 }
 
-export interface ExitSpanSample {
-  serviceName: string;
-  agentName?: string;
-  spanDestinationServiceResource: string;
-  spanType: string;
-  spanSubtype: string;
-  destinationService?: {
-    serviceName: string;
-    agentName?: string;
-  };
-}
-
-export interface ConnectionStatsItem {
-  from: { serviceName: string };
-  to: {
-    dependencyName: string;
-    spanType: string;
-    spanSubtype: string;
-  };
-  value: {
-    latency_count: number;
-    latency_sum: number;
-    error_count: number;
-    success_count: number;
-  };
-}
-
-export interface TraceMetrics {
-  latencyUs: number | null;
-  throughputPerMin: number | null;
-  errorRate: number | null;
-}
-
-export type ApmConnectionStatsEntry =
-  | { type: 'service'; serviceName: string; metrics: TraceMetrics }
-  | {
-      type: 'dependency';
-      dependencyName: string;
-      spanType: string;
-      spanSubtype: string;
-      metrics: TraceMetrics;
-    };
-
 export interface ApmTransactionDetailsResponse {
   transaction?: Transaction;
   transactionId?: string;
@@ -247,34 +203,6 @@ export interface ObservabilityAgentBuilderDataRegistryTypes {
     sloInstanceId?: GetSLOParams['instanceId'];
     remoteName?: GetSLOParams['remoteName'];
   }) => Promise<GetSLOResponse>;
-
-  apmTraceSampleIds: (params: {
-    request: KibanaRequest;
-    serviceName: string;
-    start: number;
-    end: number;
-  }) => Promise<{ traceIds: string[] }>;
-
-  apmExitSpanSamples: (params: {
-    request: KibanaRequest;
-    traceIds: string[];
-    start: number;
-    end: number;
-  }) => Promise<ExitSpanSample[]>;
-
-  apmConnectionStatsItems: (params: {
-    request: KibanaRequest;
-    start: number;
-    end: number;
-    filter: QueryDslQueryContainer[];
-  }) => Promise<ConnectionStatsItem[]>;
-
-  apmConnectionStats: (params: {
-    request: KibanaRequest;
-    start: number;
-    end: number;
-    filter: QueryDslQueryContainer[];
-  }) => Promise<ApmConnectionStatsEntry[]>;
 
   apmTransactionDetails: (params: {
     request: KibanaRequest;

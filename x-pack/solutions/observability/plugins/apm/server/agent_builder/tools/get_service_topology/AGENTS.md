@@ -6,7 +6,14 @@ Surface upstream and downstream service dependencies for a given service, enabli
 
 ## Implementation
 
-Core logic: `x-pack/solutions/observability/plugins/observability_agent_builder/server/tools/get_service_topology/get_service_topology.ts`
+Core logic: `x-pack/solutions/observability/plugins/apm/server/agent_builder/tools/get_service_topology/service.ts`
+
+This is the canonical implementation, consumed by two thin adapters:
+
+- **HTTP route** (external callers): `x-pack/solutions/observability/plugins/apm/server/agent_builder/routes/register_service_topology_route.ts`
+- **Agent Builder inline tool** (in-process): `x-pack/solutions/observability/plugins/apm/server/agent_builder/tools/get_service_topology/tool.ts`
+
+Input/output validation lives in a single Zod schema (`schema.ts`); the tool id is shared cycle-free via `@kbn/apm-types` (`OBSERVABILITY_GET_SERVICE_TOPOLOGY_TOOL_ID`).
 
 ## Direction Semantics
 
