@@ -28,7 +28,7 @@ import {
   REDIS_DB,
 } from '@kbn/synthtrace';
 import type { OtherResult } from '@kbn/agent-builder-common';
-import { OBSERVABILITY_GET_SERVICE_TOPOLOGY_TOOL_ID } from '@kbn/observability-agent-builder-plugin/server/tools';
+import { OBSERVABILITY_GET_SERVICE_TOPOLOGY_TOOL_ID } from '@kbn/apm-types';
 import { uniq } from 'lodash';
 import type { DeploymentAgnosticFtrProviderContext } from '../../../ftr_provider_context';
 import { createAgentBuilderApiClient } from '../utils/agent_builder_client';
